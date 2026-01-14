@@ -1,0 +1,315 @@
+/* fondo de pantalla para login*/
+.fondo {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #1e1e2f; /* Darker background for better contrast */
+  overflow: hidden;
+}
+
+.fondo::before,
+.fondo::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+      circle at top left,
+      rgba(255, 120, 150, 0.6) 10%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(120, 200, 255, 0.6) 10%,
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(200, 100, 255, 0.3),
+      rgba(200, 100, 255, 0.3) 30px,
+      transparent 30px,
+      transparent 60px
+    );
+  z-index: 0;
+}
+
+.fondo .shape {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #ff6b6b, #ffa07a);
+  box-shadow: 0 0 15px 5px rgba(255, 150, 150, 0.8);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  animation:
+    rotateShape 5s infinite linear,
+    glow 2s infinite alternate,
+    bounce 3s infinite ease-in-out;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes rotateShape {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 10px 5px rgba(255, 150, 150, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 25px 10px rgba(255, 150, 150, 1);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -45%) scale(1.1);
+  }
+}
+
+.fondo .shape:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #32cd32, #7cfc00);
+  box-shadow: 0 0 15px 5px rgba(124, 252, 0, 0.8);
+  top: 20%;
+  left: 30%;
+  clip-path: ellipse(50% 50% at 50% 50%);
+  animation:
+    pulse 3s infinite ease-in-out,
+    glowGreen 2s infinite alternate,
+    swing 4s infinite ease-in-out;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+@keyframes swing {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(65deg);
+  }
+}
+
+@keyframes glowGreen {
+  0% {
+    box-shadow: 0 0 10px 5px rgba(124, 252, 0, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 25px 10px rgba(124, 252, 0, 1);
+  }
+}
+
+.fondo .shape:nth-child(3) {
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(45deg, #00ced1, #1e90ff);
+  box-shadow: 0 0 20px 10px rgba(30, 144, 255, 0.8);
+  top: 70%;
+  left: 70%;
+  clip-path: polygon(10% 10%, 90% 10%, 100% 90%, 0% 90%);
+  animation:
+    float 6s infinite ease-in-out,
+    glowBlue 2s infinite alternate,
+    drift 5s infinite ease-in-out;
+  transform: translate(-50%, -50%) rotate(-30deg);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0) rotate(-30deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-20px) rotate(-30deg);
+  }
+}
+
+@keyframes glowBlue {
+  0% {
+    box-shadow: 0 0 10px 5px rgba(30, 144, 255, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 25px 10px rgba(30, 144, 255, 1);
+  }
+}
+
+@keyframes drift {
+  0% {
+    transform: translate(-50%, -50%) translateX(0) rotate(-30deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateX(20px) rotate(-30deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) translateX(0) rotate(-30deg);
+  }
+}
+
+
+
+
+/* Standard Dekstop Styling */
+html {
+    height: -webkit-fill-available; /* Prevent mobile webkit browsers from dropping footer behind the navigation bar */
+}
+
+body {
+    min-height: 100vh;
+    min-height: -webkit-fill-available; /* Prevent mobile webkit browsers from dropping footer behind the navigation bar */
+}
+
+.container-login,
+.footer {
+    position: relative;
+    z-index: 2;
+}
+
+.container-login,
+.footer {
+    max-width: 720px;
+}
+
+.container-login {
+    min-height: 405px;
+}
+
+.box-logo {
+    width: 40%;
+}
+
+.logo {
+    object-fit: contain; /* Logo contains aspect ratio */
+    max-width: 405px; /* Prevent horizontal logo going too big on large mobile screens */
+    max-height: calc(405px - 3rem); /* Container height minus container padding */
+}
+
+img.logo {
+    filter: drop-shadow(1px 0 0 rgba(255, 255, 255, 0.87)) drop-shadow(0 1px 0 rgba(255, 255, 255, 0.87)) drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.87)) drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.87)); /* White border around Company Logo for correct display on darker themes */
+}
+
+.box-login {
+    width: 60%;
+}
+
+.box-login form {
+    width: 100%; /* Login box content full width */
+}
+
+.box-login .form-floating:focus-within,
+.box-login .input-group:focus-within {
+    z-index: 2;
+}
+
+.box-login input[name="username"],
+.box-login span[id="input-username"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.box-login input[name="password"],
+.box-login span[id="input-password"] {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.alert div:not(:first-child) {
+    margin-top: 1rem; /* Space between multiple validation errors */
+}
+
+.bi {
+    height: 1em;
+}
+
+footer a:not(:hover) {
+    text-decoration: none;
+}
+
+/* Mobile Styling */
+@media (max-width: 767.98px) {
+    .container-login {
+        min-height: auto;
+    }
+
+    .box-logo,
+    .box-login {
+        width: 100%;
+    }
+
+    .box-logo {
+        border-right: none !important;
+    }
+
+    .logo {
+        max-height: 150px;
+    }
+
+    .footer {
+        max-width: 100%;
+        border-radius: 0 !important;
+    }
+}
+
+/* QHD Styling */
+@media (min-width: 2560px) {
+    .container-login,
+    .footer {
+        max-width: 960px;
+    }
+
+    .container-login {
+        min-height: 540px;
+    }
+
+    .logo {
+        max-height: calc(540px - 3rem);
+    }
+}
+
+/* 4K Styling */
+@media (min-width: 3840px) {
+    .container-login,
+    .footer {
+        max-width: 1140px;
+    }
+
+    .container-login {
+        min-height: 641.25px;
+    }
+
+    .logo {
+        max-height: calc(641.25px - 3rem);
+    }
+}
+
+/* Specific Styling */
+@media (max-width: 359.98px) {
+    .g-recaptcha {
+        overflow-x: auto; /* Makes sure reCAPTCHA is usable on the smallest screens */
+        min-height: 86px;
+    }
+}
