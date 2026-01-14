@@ -314,35 +314,61 @@ class Customer extends Person
     {
         $suggestions = [];
 
-        $builder = $this->db->table('customers');
-        $builder->join('people', 'customers.person_id = people.person_id');
-        $builder->groupStart();
-        $builder->like('first_name', $search);
-        $builder->orLike('last_name', $search);
-        $builder->orLike('CONCAT(first_name, " ", last_name)', $search);
+        try {
+            // Basic sanitization and quick return for empty search
+            $search = trim($search);
+            if ($search === '') {
+                return [];
+            }
 
-        if ($unique) {
-            $builder->orLike('email', $search);
-            $builder->orLike('phone_number', $search);
-            $builder->orLike('company_name', $search);
-        }
-        $builder->groupEnd();
-        $builder->where('deleted', 0);
-        $builder->orderBy('last_name', 'asc');
+            // Prefer prefix matches to let DB use indexes (better performance).
+            // Use explicit select to reduce data transferred.
+            $builder = $this->db->table('customers');
+            $builder->select('people.person_id, people.first_name, people.last_name, customers.company_name, people.phone_number, people.email');
+            $builder->join('people', 'customers.person_id = people.person_id');
+            $builder->groupStart();
+            $builder->like('people.first_name', $search, 'after');
+            $builder->orLike('people.last_name', $search, 'after');
 
-        foreach ($builder->get()->getResult() as $row) {
-            $suggestions[] = [
-                'value' => $row->person_id,
-                'label' => $row->first_name . ' ' . $row->last_name . (!empty($row->company_name) ? ' [' . $row->company_name . ']' : '') . (!empty($row->phone_number) ? ' [' . $row->phone_number . ']' : '')
-            ];
+            // Searching full name as separate checks avoids CONCAT which prevents index use
+            if (strpos($search, ' ') !== false) {
+                [$part1, $part2] = explode(' ', $search, 2);
+                $builder->orGroupStart();
+                $builder->like('people.first_name', $part1, 'after');
+                $builder->orLike('people.last_name', $part2, 'after');
+                $builder->groupEnd();
+            }
+
+            if ($unique) {
+                $builder->orLike('people.email', $search, 'after');
+                $builder->orLike('people.phone_number', $search, 'after');
+                $builder->orLike('customers.company_name', $search, 'after');
+            }
+            $builder->groupEnd();
+            $builder->where('customers.deleted', 0);
+            $builder->orderBy('people.last_name', 'asc');
+
+            // Let DB limit results (avoid fetching all rows then slicing in PHP)
+            $builder->limit($limit);
+
+            foreach ($builder->get()->getResult() as $row) {
+                $suggestions[] = [
+                    'value' => $row->person_id,
+                    'label' => $row->first_name . ' ' . $row->last_name . (!empty($row->company_name) ? ' [' . $row->company_name . ']' : '') . (!empty($row->phone_number) ? ' [' . $row->phone_number . ']' : '')
+                ];
+            }
+        } catch (\Throwable $e) {
+            // Log the exception so developer can inspect the cause; return empty suggestions to avoid 500
+            error_log('get_search_suggestions error: ' . $e->getMessage());
+            return [];
         }
 
         if (!$unique) {
             $builder = $this->db->table('customers');
             $builder->join('people', 'customers.person_id = people.person_id');
             $builder->where('deleted', 0);
-            $builder->like('email', $search);
-            $builder->orderBy('email', 'asc');
+            $builder->like('people.email', $search);
+            $builder->orderBy('people.email', 'asc');
 
             foreach ($builder->get()->getResult() as $row) {
                 $suggestions[] = ['value' => $row->person_id, 'label' => $row->email];
@@ -350,9 +376,9 @@ class Customer extends Person
 
             $builder = $this->db->table('customers');
             $builder->join('people', 'customers.person_id = people.person_id');
-            $builder->where('deleted', 0);
-            $builder->like('phone_number', $search);
-            $builder->orderBy('phone_number', 'asc');
+            $builder->where('customers.deleted', 0);
+            $builder->like('people.phone_number', $search);
+            $builder->orderBy('people.phone_number', 'asc');
 
             foreach ($builder->get()->getResult() as $row) {
                 $suggestions[] = ['value' => $row->person_id, 'label' => $row->phone_number];
@@ -360,9 +386,9 @@ class Customer extends Person
 
             $builder = $this->db->table('customers');
             $builder->join('people', 'customers.person_id = people.person_id');
-            $builder->where('deleted', 0);
-            $builder->like('account_number', $search);
-            $builder->orderBy('account_number', 'asc');
+            $builder->where('customers.deleted', 0);
+            $builder->like('customers.account_number', $search);
+            $builder->orderBy('customers.account_number', 'asc');
 
             foreach ($builder->get()->getResult() as $row) {
                 $suggestions[] = ['value' => $row->person_id, 'label' => $row->account_number];
@@ -370,9 +396,9 @@ class Customer extends Person
 
             $builder = $this->db->table('customers');
             $builder->join('people', 'customers.person_id = people.person_id');
-            $builder->where('deleted', 0);
-            $builder->like('company_name', $search);
-            $builder->orderBy('company_name', 'asc');
+            $builder->where('customers.deleted', 0);
+            $builder->like('customers.company_name', $search);
+            $builder->orderBy('customers.company_name', 'asc');
 
             foreach ($builder->get()->getResult() as $row) {
                 $suggestions[] = ['value' => $row->person_id, 'label' => $row->company_name];

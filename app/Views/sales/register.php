@@ -665,8 +665,8 @@ if (isset($success)) {
 
         $('#customer').autocomplete({
             source: "<?= site_url('customers/suggest') ?>",
-            minChars: 0,
-            delay: 10,
+            minLength: 2,
+            delay: 300,
             select: function(a, ui) {
                 $(this).val(ui.item.value);
                 $('#select_customer_form').submit();
