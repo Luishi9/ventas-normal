@@ -630,12 +630,37 @@ if (isset($success)) {
             $(this).val("<?= lang(ucfirst($controller_name) . '.start_typing_item_name') ?>");
         });
 
+        // Cache and optimized autocomplete for items
+        var itemCache = {};
         $('#item').autocomplete({
-            source: "<?= esc("$controller_name/itemSearch") ?>",
-            minChars: 0,
+            source: function(request, response) {
+                var term = $.trim(request.term || '');
+
+                if (term.length && itemCache.hasOwnProperty(term)) {
+                    response(itemCache[term]);
+                    return;
+                }
+
+                // If empty term, allow server to return default/top items
+                var cacheKey = term.length ? term : '';
+                if (itemCache.hasOwnProperty(cacheKey)) {
+                    response(itemCache[cacheKey]);
+                    return;
+                }
+
+                $.getJSON("<?= site_url("$controller_name/itemSearch") ?>", { term: term })
+                    .done(function(data) {
+                        itemCache[cacheKey] = data || [];
+                        response(itemCache[cacheKey]);
+                    })
+                    .fail(function() {
+                        response([]);
+                    });
+            },
+            minLength: 2,
+            delay: 300,
             autoFocus: false,
-            delay: 500,
-            select: function(a, ui) {
+            select: function(event, ui) {
                 $(this).val(ui.item.value);
                 $('#add_item_form').submit();
                 return false;
@@ -655,8 +680,9 @@ if (isset($success)) {
             }
         };
 
+        // On dblclick show suggestions even when field is empty
         $('#item, #customer').click(clear_fields).dblclick(function(event) {
-            $(this).autocomplete('search');
+            $(this).autocomplete('search', '');
         });
 
         $('#customer').blur(function() {
