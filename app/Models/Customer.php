@@ -128,8 +128,8 @@ class Customer extends Person
     /**
      * Gets stats about a particular customer
      */
-    public function get_stats(int $customer_id)
-    {
+    /*
+    public function get_stats(int $customer_id){
         $db_prefix = $this->db->getPrefix();
         $totals_decimals = totals_decimals();
         $quantity_decimals = quantity_decimals();
@@ -167,6 +167,45 @@ class Customer extends Person
         // Drop Temp Table
         $sql = 'DROP TEMPORARY TABLE IF EXISTS ' . $this->db->prefixTable('sales_items_temp');
         $this->db->query($sql);
+
+        return $stat;
+    }
+    */
+    public function get_stats(int $customer_id)
+    {
+        $db_prefix = $this->db->getPrefix();
+        $totals_decimals = totals_decimals();
+        $quantity_decimals = quantity_decimals();
+
+        $builder = $this->db->table('sales AS s');
+        
+        $builder->select([
+            'COALESCE(SUM(' . $db_prefix . 'sales_payments.payment_amount - ' . $db_prefix . 'sales_payments.cash_refund), 0) AS total',
+            'COALESCE(MIN(' . $db_prefix . 'sales_payments.payment_amount - ' . $db_prefix . 'sales_payments.cash_refund), 0) AS min',
+            'COALESCE(MAX(' . $db_prefix . 'sales_payments.payment_amount - ' . $db_prefix . 'sales_payments.cash_refund), 0) AS max',
+            'COALESCE(AVG(' . $db_prefix . 'sales_payments.payment_amount - ' . $db_prefix . 'sales_payments.cash_refund), 0) AS average',
+            "ROUND( (SELECT AVG(avg_disc) FROM (SELECT AVG(si.discount) as avg_disc FROM " . $db_prefix . "sales_items si JOIN " . $db_prefix . "sales s2 ON si.sale_id = s2.sale_id WHERE s2.customer_id = " . $this->db->escape($customer_id) . " AND s2.sale_status = 0 GROUP BY si.sale_id) as temp), $totals_decimals) AS avg_discount",
+            "ROUND(SUM(" . $db_prefix . "sales_items.quantity_purchased), $quantity_decimals) AS quantity"
+        ]);
+        
+        $builder->join($db_prefix . 'sales_payments', 's.sale_id = ' . $db_prefix . 'sales_payments.sale_id');
+        $builder->join($db_prefix . 'sales_items', 's.sale_id = ' . $db_prefix . 'sales_items.sale_id');
+        $builder->where('s.customer_id', $customer_id);
+        $builder->where('s.sale_status', COMPLETED);
+        $builder->groupBy('s.customer_id');
+
+        $stat = $builder->get()->getRow();
+
+        if ($stat === null) {
+            $stat = (object) [
+                'total' => 0,
+                'min' => 0,
+                'max' => 0,
+                'average' => 0,
+                'avg_discount' => 0,
+                'quantity' => 0
+            ];
+        }
 
         return $stat;
     }
